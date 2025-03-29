@@ -1,0 +1,16 @@
+pytun/build
+pytun/dist
+MANIFEST
+.idea
+.vscode
+cmake-build-debug
+CMakeLists.txt
+*.egg-info
+*.bak
+*.pyc
+*.o
+*.so
+*.swp
+*test
+*venv*
+async-routing-protocol
