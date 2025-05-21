@@ -44,13 +44,11 @@ def decr_ttl(packet: Packet) -> Packet:
 
     return packet
 
-
-def main():
-
-    tun = TunTapDevice(name='utun5')
+def test_tun():
+    tun = TunTapDevice(name='utun12')
     tun.mtu = 1500
     tun.up()
-    tun.set_config('10.1.1.1', '10.1.1.2', '255.255.255.0')
+    tun.set_config('10.0.0.1', '10.0.0.2', '255.255.255.0')
     # set_config(tun, '10.1.1.1', '10.1.1.2', '255.255.255.0')
     while True:
         try:
@@ -71,6 +69,8 @@ def main():
             print("Exiting...")
             break
     tun.down()
+def main():
+    test_tun()
 
 
 
