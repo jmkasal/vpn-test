@@ -81,6 +81,7 @@ def run(
                         # Data from the peer needs to be pumped to TUNTAP
                         data = remote.recv(0xFFFF)
                         data = handle_received_data(data, key)
+                        print(data)
                         if data:
                             tuntap.write(data)
     except Exception as e:
