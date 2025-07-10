@@ -11,6 +11,6 @@ CMakeLists.txt
 *.o
 *.so
 *.swp
-*test
+*test*
 *venv*
-async-routing-protocol
+
