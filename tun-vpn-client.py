@@ -20,7 +20,8 @@ def xor(data: bytes, key: bytes):
 
 # snippet:start vpn
 VPN_HEADER = ">4sHxx"
-VPN_KEY = bytes(os.environ.get('VPN_KEY'), 'utf-8')
+# VPN_KEY = bytes(os.environ.get('VPN_KEY'), 'utf-8')
+VPN_KEY = b"jose"
 VPN_HEADER_SIZE = struct.calcsize(VPN_HEADER)
 
 
@@ -45,30 +46,26 @@ def handle_received_data(data: bytes, key: bytes) -> bytes | None:
     return plaintext
     # snippet:end vpn
 
-
-def get_five_tuple(data):
-    return ('10.1.1.8', '10.0.0.1', 'tcp', '80', '50000')
-
 def run(
-    listen_address: tuple[str, int],
     peer_address: tuple[str, int],
     local_ip: str,
     peer_ip: str,
     key: bytes,
 ):
     """Run the VPN service"""
-
+    mtu_size = 508
     # Open TUN device
     tuntap = TunTapDevice(name='utun12')
-    tuntap.mtu = 1500
+    tuntap.mtu = mtu_size
     tuntap.up()
     tuntap.set_config(local_ip, peer_ip, '255.255.255.0')
-
+    header = None
 
     # snippet:start open_socket
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as remote:
-            remote.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            # remote.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            print(remote.getsockname())
             # remote.bind(listen_address)
 
             # snippet:end open_socket
@@ -80,6 +77,9 @@ def run(
                     if sock is tuntap:
                         # Data from TUNTAP needs to be pumped to the peer
                         data = tuntap.read(0xFFFF)
+                        # on mac, need to remove loopback header from data
+                        header = data[:4]
+                        data = data[4:]
                         data = prepare_data_for_sending(data, key)
                         if data:
                             remote.sendto(data, peer_address)
@@ -88,10 +88,10 @@ def run(
 
                     elif sock is remote:
                         # Data from the peer needs to be pumped to TUNTAP
-                        data, address = remote.recvfrom(0xFFFF)
+                        data, address = remote.recvfrom(mtu_size)
                         data = handle_received_data(data, key)
-                        if data:
-                            tuntap.write(data)
+                        if data and header:
+                            tuntap.write(header + data)
     except Exception as e:
         print(e)
         tuntap.down()
@@ -105,7 +105,7 @@ def main(
 ):
 
     run(
-        peer_address=(peer_host, 1337),
+        peer_address=(peer_host, 1338),
         local_ip=local_ip,
         peer_ip=peer_ip,
         key=bytes.fromhex(hex_key),
@@ -113,4 +113,5 @@ def main(
 
 
 if __name__ == "__main__":
-    main(hex_key=os.environ.get('VPN_HEX_KEY'), peer_host='', local_ip='10.0.0.1', peer_ip='10.0.0.2')
+    # print(os.environ)
+    main(hex_key=os.environ.get('VPN_HEX_KEY'), peer_host='44.211.159.105', local_ip='10.0.0.1', peer_ip='10.0.0.2')

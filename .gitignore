@@ -13,4 +13,5 @@ CMakeLists.txt
 *.swp
 *test*
 *venv*
+.DS_Store
 

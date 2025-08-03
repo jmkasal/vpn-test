@@ -3,7 +3,7 @@ from scapy.all import sniff
 
 
 def test_scapy():
-    sniff(prn=lambda x: x.show(), store=0, filter='tcp port 80', iface='utun5')
+    sniff(prn=lambda x: x.show(), store=0, iface='utun4')
 
 
 def main():
