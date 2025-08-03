@@ -57,7 +57,7 @@ def run(
     """Run the VPN service"""
     mtu_size = 508
     # Open TUN device
-    tuntap = TunTapDevice(name="utun12")
+    tuntap = TunTapDevice()
     tuntap.mtu = mtu_size
     tuntap.up()
     tuntap.set_config(local_ip, peer_ip, "255.255.255.0")
