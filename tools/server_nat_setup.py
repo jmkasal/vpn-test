@@ -8,4 +8,4 @@ def main(interface_name, tun_name):
 
 
 if __name__ == "__main__":
-    main(["enX0"])
+    main(["enX0", "tun1"])
