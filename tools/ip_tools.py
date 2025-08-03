@@ -13,9 +13,9 @@ TCP_FORMAT_STRING = ">HH"
 def unpack_ip_header(data: bytes):
     ihl = data[0]
     version = ihl >> 4
+    if version == 6:
+        return None, None, None, None
     internet_header_length = ((ihl & 0xF) * 32) // 8
-    print(f"Version: {version}")
-    print(f"IHL: {internet_header_length}")
     ip_header = data[1:internet_header_length]
     (
         tos,
@@ -30,11 +30,7 @@ def unpack_ip_header(data: bytes):
     ) = struct.unpack(IP_FORMAT_STRING, ip_header)
     src_ip = f"{(src_ip_raw >> 24) & 0xFF}.{(src_ip_raw >> 16) & 0xFF}.{(src_ip_raw >> 8) & 0xFF}.{src_ip_raw & 0xFF}"
     dest_ip = f"{(dest_ip_raw >> 24) & 0xFF}.{(dest_ip_raw >> 16) & 0xFF}.{(dest_ip_raw >> 8) & 0xFF}.{dest_ip_raw & 0xFF}"
-    print(f"Total Length: {total_length}")
-    print(f"Source IP: {src_ip}")
-    print(f"Destination IP: {dest_ip}")
-    print(f"protocol: {protocol}")
-    return (src_ip_raw, dest_ip_raw, protocol, internet_header_length)
+    return (src_ip, dest_ip, protocol, internet_header_length)
 
 
 def unpack_tcp_header(data: bytes):

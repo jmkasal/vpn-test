@@ -19,7 +19,7 @@ def xor(data: bytes, key: bytes):
 
 # snippet:start vpn
 VPN_HEADER = ">4sHxx"
-VPN_KEY = bytes(os.environ.get('VPN_KEY'), 'utf-8')
+VPN_KEY = bytes(os.environ.get("VPN_KEY"), "utf-8")
 VPN_HEADER_SIZE = struct.calcsize(VPN_HEADER)
 
 
@@ -46,7 +46,7 @@ def handle_received_data(data: bytes, key: bytes) -> bytes | None:
 
 
 def get_five_tuple(data):
-    return ('10.1.1.8', '10.0.0.1', 'tcp', '80', '50000')
+    return ("10.1.1.8", "10.0.0.1", "tcp", "80", "50000")
 
 
 def run(
@@ -58,11 +58,11 @@ def run(
     """Run the VPN service"""
 
     # Open TUN device
-    tuntap = pytun.TunTapDevice(name='tun1', flags=pytun.IFF_TUN | pytun.IFF_NO_PI)
+    tuntap = pytun.TunTapDevice(name="tun1", flags=pytun.IFF_TUN | pytun.IFF_NO_PI)
     tuntap.mtu = 508
     tuntap.addr = local_ip
     tuntap.dstaddr = peer_ip
-    tuntap.netmask = '255.255.255.0'
+    tuntap.netmask = "255.255.255.0"
     tuntap.up()
     tuntap.persist(True)
     sessions = TimeoutDict(5)
@@ -84,16 +84,20 @@ def run(
                         data = tuntap.read(0xFFFF)
                         src_ip, dst_ip, protocol, ip_h_len = unpack_ip_header(data)
                         if protocol == 6 or protocol == 17:
-                            src_port, dst_port = unpack_tcp_header(
-                                data[ip_h_len:]) if protocol == 6 else unpack_udp_header(data[ip_h_len:])
+                            src_port, dst_port = (
+                                unpack_tcp_header(data[ip_h_len:])
+                                if protocol == 6
+                                else unpack_udp_header(data[ip_h_len:])
+                            )
                             # check if response is in our sessions, otherwise drop
-                            peer_address = sessions.get((src_ip, dst_ip, protocol, src_port, dst_port))
+                            peer_address = sessions.get(
+                                (src_ip, dst_ip, protocol, src_port, dst_port)
+                            )
                             if peer_address:
                                 data = prepare_data_for_sending(data, key)
                                 remote.sendto(data, peer_address)
                             else:
-                                print('DROPPED PACKET')
-
+                                print("DROPPED PACKET")
 
                     elif sock is remote:
                         # Data from the peer needs to be pumped to TUNTAP
@@ -101,14 +105,19 @@ def run(
                         data = handle_received_data(data, key)
                         src_ip, dst_ip, protocol, ip_h_len = unpack_ip_header(data)
                         if protocol == 6 or protocol == 17:
-                            src_port, dst_port = unpack_tcp_header(
-                                data[ip_h_len:]) if protocol == 6 else unpack_udp_header(data[ip_h_len:])
+                            src_port, dst_port = (
+                                unpack_tcp_header(data[ip_h_len:])
+                                if protocol == 6
+                                else unpack_udp_header(data[ip_h_len:])
+                            )
                             # we want to track the response packet
                             # so when the response (hopefully) comes back, we can send it to the correct remote address
-                            sessions[(dst_ip, src_ip, protocol, dst_port, src_port)] = address
+                            sessions[(dst_ip, src_ip, protocol, dst_port, src_port)] = (
+                                address
+                            )
                             tuntap.write(data)
                         else:
-                            print(f'CANNOT HANDLE IP PROTOCOL: {protocol}')
+                            print(f"CANNOT HANDLE IP PROTOCOL: {protocol}")
     except Exception as e:
         print(e)
         tuntap.down()
@@ -128,4 +137,8 @@ def main(
 
 
 if __name__ == "__main__":
-    main(hex_key=os.environ.get('VPN_HEX_KEY'), local_ip='10.0.0.2', peer_ip='10.0.0.1', )
+    main(
+        hex_key=os.environ.get("VPN_HEX_KEY"),
+        local_ip="10.0.0.2",
+        peer_ip="10.0.0.1",
+    )

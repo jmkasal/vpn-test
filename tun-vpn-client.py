@@ -8,6 +8,7 @@ from pytun import TunTapDevice
 from pytun import *
 from tools.timeout_dict import TimeoutDict
 
+
 # snippet:start xor
 def xor(data: bytes, key: bytes):
     """XOR two byte arrays, repeating the key"""
@@ -46,19 +47,20 @@ def handle_received_data(data: bytes, key: bytes) -> bytes | None:
     return plaintext
     # snippet:end vpn
 
+
 def run(
-    peer_address: tuple[str, int],
-    local_ip: str,
-    peer_ip: str,
-    key: bytes,
+        peer_address: tuple[str, int],
+        local_ip: str,
+        peer_ip: str,
+        key: bytes,
 ):
     """Run the VPN service"""
     mtu_size = 508
     # Open TUN device
-    tuntap = TunTapDevice(name='utun12')
+    tuntap = TunTapDevice(name="utun12")
     tuntap.mtu = mtu_size
     tuntap.up()
-    tuntap.set_config(local_ip, peer_ip, '255.255.255.0')
+    tuntap.set_config(local_ip, peer_ip, "255.255.255.0")
     header = None
 
     # snippet:start open_socket
@@ -84,11 +86,9 @@ def run(
                         if data:
                             remote.sendto(data, peer_address)
 
-
-
                     elif sock is remote:
                         # Data from the peer needs to be pumped to TUNTAP
-                        data, address = remote.recvfrom(mtu_size)
+                        data, address = remote.recvfrom(0xFFFF)
                         data = handle_received_data(data, key)
                         if data and header:
                             tuntap.write(header + data)
@@ -98,12 +98,11 @@ def run(
 
 
 def main(
-    hex_key: str,
-    peer_host: str,
-    local_ip: str,
-    peer_ip: str,
+        hex_key: str,
+        peer_host: str,
+        local_ip: str,
+        peer_ip: str,
 ):
-
     run(
         peer_address=(peer_host, 1338),
         local_ip=local_ip,
@@ -114,4 +113,9 @@ def main(
 
 if __name__ == "__main__":
     # print(os.environ)
-    main(hex_key=os.environ.get('VPN_HEX_KEY'), peer_host='44.211.159.105', local_ip='10.0.0.1', peer_ip='10.0.0.2')
+    main(
+        hex_key=os.environ.get("VPN_HEX_KEY"),
+        peer_host="44.211.159.105",
+        local_ip="10.0.0.1",
+        peer_ip="10.0.0.2",
+    )
