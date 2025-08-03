@@ -45,10 +45,6 @@ def handle_received_data(data: bytes, key: bytes) -> bytes | None:
     # snippet:end vpn
 
 
-def get_five_tuple(data):
-    return ("10.1.1.8", "10.0.0.1", "tcp", "80", "50000")
-
-
 def run(
         listen_address: tuple[str, int],
         local_ip: str,
